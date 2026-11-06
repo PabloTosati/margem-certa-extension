@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Margem Certa</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="header">
+    <img src="../icons/icon32.png" alt="" width="22" height="22">
+    <h1>Margem Certa</h1>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="calc">Simular</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="settings">Configurações</button>
+  </nav>
+
+  <section id="calc" class="panel">
+    <div class="field">
+      <label for="c-marketplace">Marketplace</label>
+      <select id="c-marketplace">
+        <option value="ml">Mercado Livre</option>
+        <option value="shopee">Shopee</option>
+      </select>
+    </div>
+    <div class="field" id="c-type-field">
+      <label for="c-type">Tipo de anúncio</label>
+      <select id="c-type">
+        <option value="classico">Clássico</option>
+        <option value="premium">Premium</option>
+      </select>
+    </div>
+    <div class="field"><label for="c-price">Preço de venda (R$)</label><input id="c-price" type="number" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="field"><label for="c-cost">Custo do produto (R$)</label><input id="c-cost" type="number" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="field"><label for="c-shipping">Frete pago por você (R$)</label><input id="c-shipping" type="number" min="0" step="0.01" placeholder="0,00"></div>
+
+    <div id="c-rows" class="rows"></div>
+    <div id="c-result" class="result">
+      <div class="label">Lucro por venda</div>
+      <div class="value" id="c-profit">—</div>
+      <div class="margin" id="c-margin">Digite o preço de venda</div>
+    </div>
+    <p class="target" id="c-target"></p>
+  </section>
+
+  <section id="settings" class="panel hidden">
+    <h2>Mercado Livre</h2>
+    <div class="field"><label for="s-classico">Comissão Clássico (%)</label><input id="s-classico" type="number" min="0" max="100" step="0.1"></div>
+    <div class="field"><label for="s-premium">Comissão Premium (%)</label><input id="s-premium" type="number" min="0" max="100" step="0.1"></div>
+    <p class="hint">Varia por categoria (Clássico 10–14%, Premium 15–19%). Confira a sua no Mercado Livre.</p>
+    <div class="field"><label for="s-under19">Tarifa fixa até R$ 18,99</label><input id="s-under19" type="number" min="0" step="0.01"></div>
+    <div class="field"><label for="s-under49">Tarifa fixa R$ 19 a 48,99</label><input id="s-under49" type="number" min="0" step="0.01"></div>
+    <div class="field"><label for="s-under79">Tarifa fixa R$ 49 a 78,99</label><input id="s-under79" type="number" min="0" step="0.01"></div>
+    <p class="hint">Desde mar/2026 a tarifa fixa depende do peso. Os padrões valem para até 2 kg.</p>
+
+    <h2>Shopee</h2>
+    <div class="field">
+      <label for="s-seller">Tipo de vendedor</label>
+      <select id="s-seller">
+        <option value="cnpj">CNPJ ou CPF até 450 pedidos/90 dias</option>
+        <option value="cpf-alto-volume">CPF com mais de 450 pedidos/90 dias</option>
+      </select>
+    </div>
+
+    <h2>Seus custos</h2>
+    <div class="field"><label for="s-tax">Imposto sobre a venda (%)</label><input id="s-tax" type="number" min="0" max="100" step="0.1"></div>
+    <div class="field"><label for="s-ads">Gasto com anúncios (%)</label><input id="s-ads" type="number" min="0" max="100" step="0.1"></div>
+    <div class="field"><label for="s-margin">Margem desejada (%)</label><input id="s-margin" type="number" min="0" max="95" step="1"></div>
+
+    <div class="settings-actions">
+      <span id="s-saved" class="saved" role="status"></span>
+      <button id="s-reset" class="btn">Restaurar padrões</button>
+    </div>
+    <p class="hint" id="s-updated"></p>
+  </section>
+
+  <script src="../src/fees.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

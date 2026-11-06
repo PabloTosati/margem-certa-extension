@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Garrafa Térmica 500ml (página de exemplo)</title>
+  <style>
+    body { margin: 0; font: 15px/1.5 "Segoe UI", Roboto, Arial, sans-serif; background: #f5f5f5; color: #222; }
+    .nav { height: 56px; background: #ee4d2d; }
+    main { max-width: 1000px; margin: 24px auto; background: #fff; padding: 32px; display: grid; grid-template-columns: 360px 1fr; gap: 32px; }
+    .photo { height: 360px; background: linear-gradient(135deg, #fde8e3, #f7c9bd); display: flex; align-items: center; justify-content: center; color: #a05a4a; }
+    h1 { font-size: 20px; font-weight: 500; margin: 0 0 16px; }
+    .price { background: #fafafa; padding: 16px; font-size: 30px; color: #ee4d2d; }
+  </style>
+</head>
+<body>
+  <div class="nav"></div>
+  <main>
+    <div class="photo">Foto do produto</div>
+    <div>
+      <h1>Garrafa Térmica Inox 500ml (página de exemplo)</h1>
+      <div class="price" id="price">Carregando…</div>
+    </div>
+  </main>
+  <script>
+    // Like the real site, the price arrives a moment after the page loads.
+    setTimeout(() => {
+      document.getElementById('price').textContent = 'R$ 59,90';
+      const data = document.createElement('script');
+      data.type = 'application/ld+json';
+      data.textContent = JSON.stringify({ '@type': 'Product', name: 'Garrafa Térmica', offers: { price: '59.90', priceCurrency: 'BRL' } });
+      document.head.appendChild(data);
+    }, 2000);
+  </script>
+</body>
+</html>

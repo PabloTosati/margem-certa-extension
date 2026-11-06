@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Margem Certa",
+  "version": "1.0.0",
+  "description": "Veja o lucro real dos anúncios do Mercado Livre e da Shopee, já descontando comissão, tarifa fixa, frete e imposto.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.mercadolivre.com.br/*", "*://shopee.com.br/*"],
+      "js": ["src/fees.js", "src/detect.js", "src/card.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/icon32.png"],
+      "matches": ["*://*.mercadolivre.com.br/*", "*://shopee.com.br/*"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Margem Certa",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
