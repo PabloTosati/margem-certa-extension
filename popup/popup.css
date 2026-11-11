@@ -95,7 +95,7 @@ h2:first-child {
 
 .field {
   display: grid;
-  grid-template-columns: 1fr 120px;
+  grid-template-columns: 1fr 132px;
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;

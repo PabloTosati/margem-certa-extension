@@ -71,7 +71,7 @@ The extension was also tested end to end in Chromium on sample product pages: pr
 
 ## Privacy
 
-Margem Certa only runs on Mercado Livre and Shopee pages. It does not send data anywhere: product costs and settings are stored in your browser.
+Margem Certa only runs on Mercado Livre and Shopee pages. It does not send data anywhere: product costs and settings are stored in your browser. Full policy: [PRIVACY.md](PRIVACY.md).
 
 Not affiliated with Mercado Livre or Shopee.
 

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Margem Certa",
+  "name": "Margem Certa – Calculadora de lucro para vendedores",
   "version": "1.0.0",
   "description": "Veja o lucro real dos anúncios do Mercado Livre e da Shopee, já descontando comissão, tarifa fixa, frete e imposto.",
   "permissions": ["storage"],

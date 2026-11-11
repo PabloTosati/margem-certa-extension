@@ -44,7 +44,7 @@ São estimativas baseadas em informações públicas. Os marketplaces mudam as t
 
 ## Privacidade
 
-A Margem Certa só funciona nas páginas do Mercado Livre e da Shopee e não envia dados para lugar nenhum. Custos e configurações ficam salvos no seu navegador.
+A Margem Certa só funciona nas páginas do Mercado Livre e da Shopee e não envia dados para lugar nenhum. Custos e configurações ficam salvos no seu navegador. Política completa: [PRIVACY.md](PRIVACY.md).
 
 Não tem relação oficial com o Mercado Livre nem com a Shopee.
 

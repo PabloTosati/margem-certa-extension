@@ -5,7 +5,8 @@
   "description": "Chrome extension that shows the real profit of Mercado Livre and Shopee listings after fees",
   "author": "Pablo Tosati",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "package": "node -e \"process.stdout.write(require('./manifest.json').version)\" | xargs -I{} sh -c 'rm -f margem-certa-loja-{}.zip && zip -qr margem-certa-loja-{}.zip manifest.json src popup icons && echo margem-certa-loja-{}.zip'"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"
