@@ -240,11 +240,16 @@
       ? `Margem de ${r.margin.toLocaleString('pt-BR')}% · você recebe ${formatBRL(r.received)}`
       : 'Digite o preço de venda';
 
-    const target = priceForMargin({ ...input, targetMargin: settings.targetMargin });
-    els.target.replaceChildren(
-      document.createTextNode(`Preço mínimo para ${settings.targetMargin}% de margem: `),
-      el('b', {}, target === null ? 'impossível com estas taxas' : formatBRL(target)),
-    );
+    if (!(Number(input.cost) > 0)) {
+      // Without the product cost the minimum price is meaningless (it would show R$ 0,00).
+      els.target.textContent = `Preencha o custo do produto para ver o preço mínimo para ${settings.targetMargin}% de margem.`;
+    } else {
+      const target = priceForMargin({ ...input, targetMargin: settings.targetMargin });
+      els.target.replaceChildren(
+        document.createTextNode(`Preço mínimo para ${settings.targetMargin}% de margem: `),
+        el('b', {}, target === null ? 'impossível com estas taxas' : formatBRL(target)),
+      );
+    }
 
     els.pill.textContent = state.price ? `Lucro ${formatBRL(r.profit)} · ${r.margin.toLocaleString('pt-BR')}%` : 'Margem Certa';
     els.pill.classList.toggle('loss', loss);
