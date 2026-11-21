@@ -47,17 +47,19 @@ describe('Mercado Livre', () => {
 });
 
 describe('Shopee', () => {
-  test('price bands (CNPJ)', () => {
-    assert.deepEqual([shopee({ price: 5 }).commission, shopee({ price: 5 }).fixedFee], [2.5, 0]);
-    assert.deepEqual([shopee({ price: 50 }).commission, shopee({ price: 50 }).fixedFee], [10, 4]);
+  test('price bands (CNPJ, from October 2026)', () => {
+    // Below R$ 9 the R$ 4,50 fixed part is capped at half the price: 20% + 50%.
+    assert.equal(shopee({ price: 8.5 }).commission, 5.95);
+    assert.deepEqual([shopee({ price: 5 }).commission, shopee({ price: 5 }).fixedFee], [3.5, 0]);
+    assert.deepEqual([shopee({ price: 50 }).commission, shopee({ price: 50 }).fixedFee], [10, 4.5]);
     assert.deepEqual([shopee({ price: 80 }).commission, shopee({ price: 80 }).fixedFee], [11.2, 16]);
     assert.deepEqual([shopee({ price: 150 }).commission, shopee({ price: 150 }).fixedFee], [21, 20]);
     assert.deepEqual([shopee({ price: 250 }).commission, shopee({ price: 250 }).fixedFee], [35, 26]);
   });
 
-  test('high-volume CPF pays R$ 3 more per item from R$ 8', () => {
+  test('high-volume CPF pays R$ 3 more per item from R$ 9', () => {
     const settings = { shopee: { sellerType: 'cpf-alto-volume' } };
-    assert.equal(shopee({ price: 50, settings }).fixedFee, 7);
+    assert.equal(shopee({ price: 50, settings }).fixedFee, 7.5);
     assert.equal(shopee({ price: 5, settings }).fixedFee, 0);
   });
 });
@@ -99,8 +101,8 @@ describe('priceForMargin', () => {
   });
 
   test('Shopee', () => {
-    // (40 + 4) / (1 - 0.20 - 0.20) = 73.33...
-    assertReachesTarget({ marketplace: 'shopee', cost: 40, targetMargin: 20 }, 73.34);
+    // (40 + 4.50) / (1 - 0.20 - 0.20) = 74.16...
+    assertReachesTarget({ marketplace: 'shopee', cost: 40, targetMargin: 20 }, 74.17);
   });
 
   test('includes taxes and ads', () => {

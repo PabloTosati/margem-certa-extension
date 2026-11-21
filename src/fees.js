@@ -27,10 +27,12 @@
     targetMargin: 20, // Desired profit margin (%) used by "price for margin"
   };
 
-  // Shopee Brazil table, effective March 2026 (CNPJ, and CPF up to 450 orders in 90 days).
+  // Shopee Brazil table, effective October 1, 2026 (CNPJ, and CPF up to 450 orders in 90 days).
+  // Up to R$ 79,99: 20% + R$ 4,50. The fixed part is capped at half the price, so below
+  // R$ 9 it becomes 20% + 50% of the price.
   const SHOPEE_BANDS = [
-    { min: 0, max: 8, rate: 0.5, fixed: 0 },
-    { min: 8, max: 80, rate: 0.2, fixed: 4 },
+    { min: 0, max: 9, rate: 0.7, fixed: 0 },
+    { min: 9, max: 80, rate: 0.2, fixed: 4.5 },
     { min: 80, max: 100, rate: 0.14, fixed: 16 },
     { min: 100, max: 200, rate: 0.14, fixed: 20 },
     { min: 200, max: Infinity, rate: 0.14, fixed: 26 },
@@ -84,7 +86,7 @@
 
   function shopeeBand(price, sellerType) {
     const band = SHOPEE_BANDS.find((b) => price >= b.min && price < b.max);
-    const extra = sellerType === 'cpf-alto-volume' && price >= 8 ? SHOPEE_CPF_EXTRA : 0;
+    const extra = sellerType === 'cpf-alto-volume' && price >= 9 ? SHOPEE_CPF_EXTRA : 0;
     return { rate: band.rate, fixed: band.fixed + extra };
   }
 
