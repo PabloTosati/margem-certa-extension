@@ -173,9 +173,13 @@
       const divisor = 1 - band.rate - band.fixedRate - variable;
       if (divisor <= 0) continue;
       const price = (cost + shipping + band.fixedConst) / divisor;
-      if (price >= band.min && price < band.max) {
+      if (price < band.max) {
+        // Below band.min means the whole band already reaches the target (the earlier
+        // bands did not), so the band's first price is the answer. This happens when
+        // the fixed fee drops, as at R$ 79 on Mercado Livre.
+        const best = Math.max(price, band.min);
         // Round up to the cent so the margin is never below the target.
-        return Math.ceil(price * 100 - 1e-6) / 100;
+        return Math.ceil(best * 100 - 1e-6) / 100;
       }
     }
     return null;

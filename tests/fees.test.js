@@ -100,6 +100,14 @@ describe('priceForMargin', () => {
     assertReachesTarget({ marketplace: 'ml', cost: 60, shipping: 15, targetMargin: 20 }, 110.3);
   });
 
+  test('Mercado Livre, the R$ 79 step (no fixed fee from there)', () => {
+    // Below R$ 79 it would need (50 + 8.75) / 0.68 = 86.40, which is above R$ 79;
+    // from R$ 79 the fee is lower and R$ 79 itself already gives 24.7%.
+    const price = priceForMargin({ marketplace: 'ml', cost: 50, targetMargin: 20 });
+    assert.equal(price, 79);
+    assert.ok(calculate({ marketplace: 'ml', cost: 50, price }).margin >= 20);
+  });
+
   test('Shopee', () => {
     // (40 + 4.50) / (1 - 0.20 - 0.20) = 74.16...
     assertReachesTarget({ marketplace: 'shopee', cost: 40, targetMargin: 20 }, 74.17);
