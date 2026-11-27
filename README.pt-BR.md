@@ -14,6 +14,7 @@ Extensão para Chrome que mostra o **lucro real** de um anúncio do Mercado Livr
 - **Lembra o custo** e o frete de cada anúncio (salvos só no seu navegador)
 - Anúncio **Clássico ou Premium** no Mercado Livre; **CNPJ ou CPF com muitos pedidos** na Shopee
 - **Calculadora rápida** no ícone da extensão, para simular antes de anunciar
+- **Custo do Mercado Livre pelo peso do pacote**: digite o peso (até 6 kg) e a extensão estima a tarifa por unidade abaixo de R$ 79 e o frete grátis que você paga a partir de R$ 79
 - **Tarifas editáveis**: as taxas mudam por categoria e peso, então você ajusta os valores do Mercado Livre
 - O cartão pode ser minimizado e continua mostrando o lucro
 
@@ -26,6 +27,7 @@ Extensão para Chrome que mostra o **lucro real** de um anúncio do Mercado Livr
 | Mercado Livre | Tarifa fixa abaixo de R$ 19 | R$ 6,25, no máximo metade do preço |
 | Mercado Livre | Tarifa fixa R$ 19 a 48,99 | R$ 7,45 (até 2 kg) |
 | Mercado Livre | Tarifa fixa R$ 49 a 78,99 | R$ 8,75 (até 2 kg) |
+| Mercado Livre | Com o peso do pacote | Custo por unidade por peso e preço, até 6 kg (tabela da reputação verde); a partir de R$ 79 é o frete grátis pago pelo vendedor |
 | Shopee | Abaixo de R$ 8 | 50% |
 | Shopee | R$ 8 a 79,99 | 20% + R$ 4 |
 | Shopee | R$ 80 a 99,99 | 14% + R$ 16 |

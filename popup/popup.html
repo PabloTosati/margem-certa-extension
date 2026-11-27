@@ -33,6 +33,7 @@
     </div>
     <div class="field"><label for="c-price">Preço de venda (R$)</label><input id="c-price" type="number" min="0" step="0.01" placeholder="0,00"></div>
     <div class="field"><label for="c-cost">Custo do produto (R$)</label><input id="c-cost" type="number" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="field" id="c-weight-field"><label for="c-weight">Peso do pacote (kg)</label><input id="c-weight" type="number" min="0" step="0.01" placeholder="ex.: 0,4"></div>
     <div class="field"><label for="c-shipping">Frete pago por você (R$)</label><input id="c-shipping" type="number" min="0" step="0.01" placeholder="0,00"></div>
 
     <div id="c-rows" class="rows"></div>
@@ -52,7 +53,7 @@
     <div class="field"><label for="s-under19">Tarifa fixa até R$ 18,99</label><input id="s-under19" type="number" min="0" step="0.01"></div>
     <div class="field"><label for="s-under49">Tarifa fixa R$ 19 a 48,99</label><input id="s-under49" type="number" min="0" step="0.01"></div>
     <div class="field"><label for="s-under79">Tarifa fixa R$ 49 a 78,99</label><input id="s-under79" type="number" min="0" step="0.01"></div>
-    <p class="hint">Desde mar/2026 a tarifa fixa depende do peso. Os padrões valem para até 2 kg.</p>
+    <p class="hint">Com o peso do pacote preenchido, a extensão usa a tabela de custos por peso do Mercado Livre (reputação verde). Estas tarifas valem quando o peso fica em branco (padrão para 1,5 a 2 kg).</p>
 
     <h2>Shopee</h2>
     <div class="field">

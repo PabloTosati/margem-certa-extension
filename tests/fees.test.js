@@ -133,3 +133,62 @@ describe('mergeSettings', () => {
     assert.equal(s.shopee.sellerType, 'cnpj');
   });
 });
+
+describe('Mercado Livre by package weight', () => {
+  const { mlShippingCost } = require('../src/fees.js');
+
+  test('cost per unit by weight and price range', () => {
+    assert.equal(mlShippingCost(30, 0.3), 6.85); // up to 0.3 kg, inclusive
+    assert.equal(mlShippingCost(30, 0.31), 6.95); // 0.3 to 0.5 kg
+    assert.equal(mlShippingCost(60, 2), 8.75);
+    assert.equal(mlShippingCost(100, 0.4), 16.15);
+    assert.equal(mlShippingCost(250, 6), 40.85);
+    assert.equal(mlShippingCost(10, 1), 5); // under R$ 19, capped at half the price
+  });
+
+  test('no usable weight: blank, zero or above 6 kg', () => {
+    assert.equal(mlShippingCost(100, ''), null);
+    assert.equal(mlShippingCost(100, 0), null);
+    assert.equal(mlShippingCost(100, 6.5), null);
+  });
+
+  test('under R$ 79 the cost by weight replaces the fixed fee', () => {
+    const r = ml({ price: 50, cost: 20, weight: 0.4 });
+    assert.equal(r.fixedFee, 8.25);
+    assert.equal(r.shipping, 0);
+    assert.equal(r.profit, 15.75);
+    assert.equal(r.weightUsed, true);
+  });
+
+  test('from R$ 79 the free shipping is estimated by weight', () => {
+    const r = ml({ price: 100, cost: 40, weight: 0.4 });
+    assert.equal(r.fixedFee, 0);
+    assert.equal(r.shipping, 16.15);
+    assert.equal(r.shippingEstimated, true);
+    assert.equal(r.profit, 31.85);
+  });
+
+  test('a typed shipping value replaces the estimate from R$ 79', () => {
+    const r = ml({ price: 100, cost: 40, weight: 0.4, shipping: 10 });
+    assert.equal(r.shipping, 10);
+    assert.equal(r.shippingEstimated, false);
+  });
+
+  test('without weight the old behaviour is kept', () => {
+    const r = ml({ price: 100, cost: 40 });
+    assert.equal(r.shipping, 0);
+    assert.equal(r.weightUsed, false);
+  });
+
+  test('price for margin uses the weight table and reaches the target', () => {
+    for (const [cost, weight] of [[40, 0.4], [60, 0.4], [5, 1], [150, 5]]) {
+      const price = priceForMargin({ marketplace: 'ml', cost, weight, targetMargin: 20 });
+      assert.ok(price > 0, `price for cost ${cost}`);
+      const r = ml({ price, cost, weight });
+      assert.ok(r.margin >= 19.99, `margin ${r.margin} at R$ ${price}`);
+      const below = ml({ price: price - 0.05, cost, weight });
+      assert.ok(below.margin < 20, `a lower price should miss the target (${below.margin})`);
+    }
+    assert.equal(priceForMargin({ marketplace: 'ml', cost: 40, weight: 0.4, targetMargin: 20 }), 70.96);
+  });
+});

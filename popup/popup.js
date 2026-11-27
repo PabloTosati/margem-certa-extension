@@ -95,6 +95,7 @@ function row(label, value) {
 function updateCalc() {
   const marketplace = $('c-marketplace').value;
   $('c-type-field').classList.toggle('hidden', marketplace !== 'ml');
+  $('c-weight-field').classList.toggle('hidden', marketplace !== 'ml');
 
   const input = {
     marketplace,
@@ -102,15 +103,17 @@ function updateCalc() {
     price: $('c-price').value,
     cost: $('c-cost').value,
     shipping: $('c-shipping').value,
+    weight: marketplace === 'ml' ? $('c-weight').value : '',
     settings,
   };
   const r = calculate(input);
   const hasPrice = Number($('c-price').value) > 0;
+  $('c-shipping').placeholder = r.shippingEstimated ? `≈ ${formatBRL(r.shipping)}` : '0,00';
 
   $('c-rows').replaceChildren(
     row(`Comissão (${r.commissionRate.toLocaleString('pt-BR')}%)`, `− ${formatBRL(r.commission)}`),
-    row('Tarifa fixa', `− ${formatBRL(r.fixedFee)}`),
-    row('Frete', `− ${formatBRL(r.shipping)}`),
+    row(r.weightUsed && r.price < 79 ? 'Tarifa por peso' : 'Tarifa fixa', `− ${formatBRL(r.fixedFee)}`),
+    row(r.shippingEstimated ? 'Frete (estimado pelo peso)' : 'Frete', `− ${formatBRL(r.shipping)}`),
     ...(settings.taxPercent ? [row(`Imposto (${settings.taxPercent}%)`, `− ${formatBRL(r.tax)}`)] : []),
     ...(settings.adsPercent ? [row(`Anúncios (${settings.adsPercent}%)`, `− ${formatBRL(r.ads)}`)] : []),
     row('Custo do produto', `− ${formatBRL(r.cost)}`),
@@ -129,7 +132,7 @@ function updateCalc() {
   $('c-target').replaceChildren(label, value);
 }
 
-['c-marketplace', 'c-type', 'c-price', 'c-cost', 'c-shipping'].forEach((id) => {
+['c-marketplace', 'c-type', 'c-price', 'c-cost', 'c-weight', 'c-shipping'].forEach((id) => {
   $(id).addEventListener('input', updateCalc);
   $(id).addEventListener('change', updateCalc);
 });

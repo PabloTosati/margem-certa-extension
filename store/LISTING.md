@@ -28,6 +28,7 @@ A Margem Certa mostra o lucro real dos seus anúncios no Mercado Livre e na Shop
 O QUE ELA CALCULA
 • Comissão do Mercado Livre (Clássico e Premium) e da Shopee
 • Tarifa fixa por unidade dos produtos abaixo de R$ 79 no Mercado Livre
+• Custo do Mercado Livre pelo peso do pacote: tarifa abaixo de R$ 79 e frete grátis a partir de R$ 79
 • Faixas de comissão e tarifa da Shopee (vendedor CNPJ ou CPF)
 • Frete pago por você
 • Imposto sobre a venda e gasto com anúncios, se você quiser incluir
@@ -60,7 +61,7 @@ Calcular o lucro e a margem de um anúncio do Mercado Livre ou da Shopee, descon
 
 **Justificativa da permissão `storage`:**
 ```
-Salvar as configurações de tarifas do usuário (comissão, tarifa fixa, imposto, gasto com anúncios e margem desejada) e o custo e o frete que ele digita para cada anúncio, para que os valores continuem lá quando ele voltar ao anúncio. Nada é enviado para fora do navegador.
+Salvar as configurações de tarifas do usuário (comissão, tarifa fixa, imposto, gasto com anúncios e margem desejada) e o custo, o peso e o frete que ele digita para cada anúncio, para que os valores continuem lá quando ele voltar ao anúncio. Nada é enviado para fora do navegador.
 ```
 
 **Justificativa da permissão de host** (os sites `mercadolivre.com.br` e `shopee.com.br`):

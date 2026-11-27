@@ -41,6 +41,24 @@
 
   const ML_FIXED_FEE_LIMIT = 79;
 
+  // Mercado Livre cost per unit by package weight and price (green reputation or no reputation).
+  // Under R$ 79 it is the operational cost per unit (it replaces the fixed fee); from R$ 79 it is
+  // the free-shipping cost the seller pays. Under R$ 19 it never exceeds half of the price.
+  // Source: Mercado Livre, "Custos dos Envios no Mercado Livre", checked 01/11/2026.
+  const ML_SHIP_PRICES = [0, 19, 49, 79, 100, 120, 150, 200];
+  const ML_SHIP_TABLE = [
+    { maxKg: 0.3, costs: [5.65, 6.85, 8.15, 12.95, 14.95, 16.95, 19.05, 21.65] },
+    { maxKg: 0.5, costs: [5.95, 6.95, 8.25, 13.85, 16.15, 18.15, 20.45, 23.25] },
+    { maxKg: 1, costs: [6.05, 7.15, 8.45, 14.45, 16.85, 19.05, 21.35, 24.45] },
+    { maxKg: 1.5, costs: [6.15, 7.35, 8.65, 14.75, 17.15, 19.45, 21.75, 25.45] },
+    { maxKg: 2, costs: [6.25, 7.45, 8.75, 15.05, 17.65, 19.85, 22.25, 25.55] },
+    { maxKg: 3, costs: [6.35, 8.65, 9.15, 16.45, 19.15, 21.65, 24.35, 27.05] },
+    { maxKg: 4, costs: [6.45, 8.75, 9.75, 17.85, 20.75, 23.35, 26.35, 29.25] },
+    { maxKg: 5, costs: [6.55, 8.85, 10.25, 19.75, 22.85, 26.05, 29.25, 32.45] },
+    { maxKg: 6, costs: [6.65, 8.95, 10.35, 25.95, 29.15, 33.35, 36.45, 40.85] },
+  ];
+  const ML_MAX_KG = 6;
+
   function round2(value) {
     return Math.round((value + Number.EPSILON) * 100) / 100;
   }
@@ -76,6 +94,30 @@
     };
   }
 
+  /** Table row for a package weight (kg), or null when blank, invalid or above 6 kg. */
+  function mlWeightRow(weight) {
+    if (weight === '' || weight === null || weight === undefined) return null;
+    const kg = Number(weight);
+    if (!Number.isFinite(kg) || kg <= 0 || kg > ML_MAX_KG) return null;
+    return ML_SHIP_TABLE.find((row) => kg <= row.maxKg + 1e-9);
+  }
+
+  /** Mercado Livre cost per unit by weight and price, or null without a usable weight. */
+  function mlShippingCost(price, weight) {
+    const row = mlWeightRow(weight);
+    if (!row) return null;
+    let col = 0;
+    ML_SHIP_PRICES.forEach((min, i) => {
+      if (price >= min) col = i;
+    });
+    const cost = row.costs[col];
+    return price < 19 ? Math.min(cost, price / 2) : cost;
+  }
+
+  function hasValue(value) {
+    return value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value));
+  }
+
   /** Mercado Livre fixed fee per unit. Under R$ 19 it never exceeds half of the price. */
   function mlFixedFee(price, fixedFee) {
     if (price >= ML_FIXED_FEE_LIMIT) return 0;
@@ -103,7 +145,9 @@
    *   marketplace: 'ml' | 'shopee'
    *   price: sale price (R$)
    *   cost: product cost (R$)
-   *   shipping: shipping paid by the seller (R$)
+   *   shipping: shipping paid by the seller (R$). With a weight on Mercado Livre, from R$ 79 it
+   *     replaces the estimated free-shipping cost; leave it blank to use the estimate.
+   *   weight: package weight in kg (Mercado Livre only, optional, up to 6 kg)
    *   listingType: 'classico' | 'premium' (Mercado Livre only)
    *   settings: saved settings (merged with defaults)
    */
@@ -111,9 +155,19 @@
     const settings = mergeSettings(input.settings);
     const price = Math.max(0, num(input.price, 0));
     const cost = Math.max(0, num(input.cost, 0));
-    const shipping = Math.max(0, num(input.shipping, 0));
+    let shipping = Math.max(0, num(input.shipping, 0));
+    let { rate, fixed } = marketplaceFees(input.marketplace, price, settings, input.listingType);
+    let shippingEstimated = false;
 
-    const { rate, fixed } = marketplaceFees(input.marketplace, price, settings, input.listingType);
+    const byWeight = input.marketplace !== 'shopee' ? mlShippingCost(price, input.weight) : null;
+    if (byWeight !== null) {
+      if (price < ML_FIXED_FEE_LIMIT) {
+        fixed = byWeight; // operational cost by weight replaces the fixed fee
+      } else if (!hasValue(input.shipping)) {
+        shipping = byWeight; // free shipping paid by the seller, estimated by weight
+        shippingEstimated = true;
+      }
+    }
     const commission = price * rate;
     const tax = (price * settings.taxPercent) / 100;
     const ads = (price * settings.adsPercent) / 100;
@@ -134,27 +188,52 @@
       received: round2(received),
       profit: round2(profit),
       margin: price > 0 ? round2((profit / price) * 100) : 0,
+      shippingEstimated,
+      weightUsed: byWeight !== null,
     };
   }
 
-  /** Price bands as linear pieces: fixed fee = fixedConst + fixedRate × price. */
-  function bands(marketplace, settings, listingType) {
+  /**
+   * Price bands as linear pieces: fees = rate × price + fixedConst + fixedRate × price,
+   * plus shipConst (shipping paid by the seller in that band).
+   */
+  function bands(marketplace, settings, listingType, shipping, weight, shippingGiven) {
     if (marketplace === 'shopee') {
       return SHOPEE_BANDS.map((b) => {
         const { rate, fixed } = shopeeBand(b.min, settings.shopee.sellerType);
-        return { min: b.min, max: b.max, rate, fixedConst: fixed, fixedRate: 0 };
+        return { min: b.min, max: b.max, rate, fixedConst: fixed, fixedRate: 0, shipConst: shipping };
       });
     }
     const type = listingType === 'premium' ? 'premium' : 'classico';
     const rate = settings.ml.commission[type] / 100;
+    const row = mlWeightRow(weight);
+    if (row) {
+      const c = row.costs;
+      const halfLimit = Math.min(2 * c[0], 19);
+      const out = [
+        { min: 0, max: halfLimit, rate, fixedConst: 0, fixedRate: 0.5, shipConst: shipping },
+        { min: halfLimit, max: 19, rate, fixedConst: c[0], fixedRate: 0, shipConst: shipping },
+      ];
+      for (let i = 1; i < ML_SHIP_PRICES.length; i++) {
+        const min = ML_SHIP_PRICES[i];
+        const max = i + 1 < ML_SHIP_PRICES.length ? ML_SHIP_PRICES[i + 1] : Infinity;
+        if (min < ML_FIXED_FEE_LIMIT) {
+          out.push({ min, max, rate, fixedConst: c[i], fixedRate: 0, shipConst: shipping });
+        } else {
+          // From R$ 79 the table is the free-shipping cost, unless the seller typed their own.
+          out.push({ min, max, rate, fixedConst: 0, fixedRate: 0, shipConst: shippingGiven ? shipping : c[i] });
+        }
+      }
+      return out;
+    }
     const f = settings.ml.fixedFee;
     const halfLimit = Math.min(2 * f.under19, 19); // below this, the fee is half the price
     return [
-      { min: 0, max: halfLimit, rate, fixedConst: 0, fixedRate: 0.5 },
-      { min: halfLimit, max: 19, rate, fixedConst: f.under19, fixedRate: 0 },
-      { min: 19, max: 49, rate, fixedConst: f.under49, fixedRate: 0 },
-      { min: 49, max: ML_FIXED_FEE_LIMIT, rate, fixedConst: f.under79, fixedRate: 0 },
-      { min: ML_FIXED_FEE_LIMIT, max: Infinity, rate, fixedConst: 0, fixedRate: 0 },
+      { min: 0, max: halfLimit, rate, fixedConst: 0, fixedRate: 0.5, shipConst: shipping },
+      { min: halfLimit, max: 19, rate, fixedConst: f.under19, fixedRate: 0, shipConst: shipping },
+      { min: 19, max: 49, rate, fixedConst: f.under49, fixedRate: 0, shipConst: shipping },
+      { min: 49, max: ML_FIXED_FEE_LIMIT, rate, fixedConst: f.under79, fixedRate: 0, shipConst: shipping },
+      { min: ML_FIXED_FEE_LIMIT, max: Infinity, rate, fixedConst: 0, fixedRate: 0, shipConst: shipping },
     ];
   }
 
@@ -169,10 +248,11 @@
     const margin = num(input.targetMargin, settings.targetMargin) / 100;
     const variable = (settings.taxPercent + settings.adsPercent) / 100 + margin;
 
-    for (const band of bands(input.marketplace, settings, input.listingType)) {
+    const list = bands(input.marketplace, settings, input.listingType, shipping, input.weight, hasValue(input.shipping));
+    for (const band of list) {
       const divisor = 1 - band.rate - band.fixedRate - variable;
       if (divisor <= 0) continue;
-      const price = (cost + shipping + band.fixedConst) / divisor;
+      const price = (cost + band.shipConst + band.fixedConst) / divisor;
       if (price < band.max) {
         // Below band.min means the whole band already reaches the target (the earlier
         // bands did not), so the band's first price is the answer. This happens when
@@ -194,7 +274,11 @@
     DEFAULT_SETTINGS,
     SHOPEE_BANDS,
     mergeSettings,
+    ML_SHIP_PRICES,
+    ML_SHIP_TABLE,
+    ML_MAX_KG,
     mlFixedFee,
+    mlShippingCost,
     calculate,
     priceForMargin,
     formatBRL,

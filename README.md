@@ -18,6 +18,7 @@ A Chrome extension for Brazilian online sellers: it shows the **real profit** of
 - **Remembers the cost** and shipping of each listing (saved locally in the browser)
 - **Clássico or Premium** listing types on Mercado Livre; CNPJ or high-volume CPF on Shopee
 - **Popup with a quick calculator** to simulate a product before listing it
+- **Mercado Livre cost by package weight**: type the weight (up to 6 kg) and the extension estimates the cost per unit under R$ 79 and the free shipping you pay from R$ 79
 - **Editable fee tables**: fees vary by category and weight, so every Mercado Livre value can be adjusted
 - Card can be minimized to a small pill that still shows the profit
 - Works on single-page navigation (the marketplaces change pages without reloading)
@@ -31,6 +32,7 @@ A Chrome extension for Brazilian online sellers: it shows the **real profit** of
 | Mercado Livre | Fixed fee under R$ 19 | R$ 6.25, never more than half the price |
 | Mercado Livre | Fixed fee R$ 19–48.99 | R$ 7.45 (up to 2 kg) |
 | Mercado Livre | Fixed fee R$ 49–78.99 | R$ 8.75 (up to 2 kg) |
+| Mercado Livre | With package weight | Cost per unit by weight and price, up to 6 kg (green reputation table); from R$ 79 it is the free shipping paid by the seller |
 | Shopee | Under R$ 8 | 50% |
 | Shopee | R$ 8–79.99 | 20% + R$ 4 |
 | Shopee | R$ 80–99.99 | 14% + R$ 16 |

@@ -16,7 +16,7 @@
     id: null,
     price: null,
     priceEdited: false,
-    product: { cost: '', shipping: '', listingType: 'classico' },
+    product: { cost: '', shipping: '', weight: '', listingType: 'classico' },
     settings: {},
     collapsed: false,
   };
@@ -39,7 +39,7 @@
   async function loadProduct() {
     const key = storageKey();
     const data = await chrome.storage.local.get([key, 'cardCollapsed']);
-    state.product = { cost: '', shipping: '', listingType: 'classico', ...(data[key] || {}) };
+    state.product = { cost: '', shipping: '', weight: '', listingType: 'classico', ...(data[key] || {}) };
     state.collapsed = Boolean(data.cardCollapsed);
   }
 
@@ -139,6 +139,12 @@
     const costField = el('div', { class: 'field' });
     costField.append(el('label', { for: 'cost' }, 'Custo do produto'), moneyInput('cost', 'R$ 0,00'));
 
+    const weightField = el('div', { class: 'field' });
+    weightField.append(
+      el('label', { for: 'weight' }, 'Peso do pacote (kg)'),
+      el('input', { id: 'weight', type: 'number', min: '0', step: '0.01', inputmode: 'decimal', placeholder: 'ex.: 0,4' }),
+    );
+
     const shipField = el('div', { class: 'field' });
     shipField.append(el('label', { for: 'shipping' }, 'Frete pago por você'), moneyInput('shipping', 'R$ 0,00'));
     const shipHint = el('p', { class: 'hint' });
@@ -149,7 +155,7 @@
     const target = el('div', { class: 'target' });
     const foot = el('p', { class: 'foot' }, `Estimativa com tarifas de ${FEES_UPDATED}. Confira as taxas da sua categoria. Ajustes no ícone da extensão.`);
 
-    body.append(priceField, typeField, costField, shipField, shipHint, rows, result, target, foot);
+    body.append(priceField, typeField, costField, weightField, shipField, shipHint, rows, result, target, foot);
     card.append(head, body);
 
     const pill = el('button', { class: 'pill hidden', title: 'Abrir Margem Certa' });
@@ -158,11 +164,12 @@
     document.documentElement.appendChild(host);
 
     els = {
-      card, pill, badge, collapse, rows, result, target, shipHint, typeField,
+      card, pill, badge, collapse, rows, result, target, shipHint, typeField, weightField,
       price: shadow.getElementById('price'),
       listingType: select,
       cost: shadow.getElementById('cost'),
       shipping: shadow.getElementById('shipping'),
+      weight: shadow.getElementById('weight'),
     };
 
     els.price.addEventListener('input', () => {
@@ -175,7 +182,7 @@
       saveProduct();
       update();
     });
-    ['cost', 'shipping'].forEach((key) => {
+    ['cost', 'shipping', 'weight'].forEach((key) => {
       els[key].addEventListener('input', () => {
         state.product[key] = els[key].value;
         saveProduct();
@@ -198,19 +205,30 @@
     return r;
   }
 
+  function shipHint(isMl, input, r) {
+    if (!isMl) return 'Deixe 0 se o frete é pago pelo comprador.';
+    const kg = Number(input.weight);
+    if (input.weight !== '' && kg > MargemFees.ML_MAX_KG) {
+      return 'Acima de 6 kg, digite o frete do simulador do Mercado Livre.';
+    }
+    if (r.weightUsed) {
+      return 'Tarifa e frete estimados pelo peso (reputação verde). Usa Flex ou outra reputação? Digite o frete do simulador.';
+    }
+    return 'Informe o peso para estimar a tarifa e o frete. A partir de R$ 79 o frete grátis é obrigatório.';
+  }
+
   function update() {
     if (!host) return;
     const isMl = state.marketplace === 'ml';
     els.badge.textContent = isMl ? 'Mercado Livre' : 'Shopee';
     els.typeField.classList.toggle('hidden', !isMl);
-    els.shipHint.textContent = isMl
-      ? 'A partir de R$ 79 o frete grátis é obrigatório e você paga parte dele.'
-      : 'Deixe 0 se o frete é pago pelo comprador.';
+    els.weightField.classList.toggle('hidden', !isMl);
 
     // Once the user types a price, the detected one no longer overwrites it.
     if (!state.priceEdited) els.price.value = state.price ? state.price.toFixed(2) : '';
     if (shadow.activeElement !== els.cost) els.cost.value = state.product.cost;
     if (shadow.activeElement !== els.shipping) els.shipping.value = state.product.shipping;
+    if (shadow.activeElement !== els.weight) els.weight.value = state.product.weight;
     els.listingType.value = state.product.listingType;
 
     const input = {
@@ -218,16 +236,19 @@
       price: state.price || 0,
       cost: state.product.cost,
       shipping: state.product.shipping,
+      weight: isMl ? state.product.weight : '',
       listingType: state.product.listingType,
       settings: state.settings,
     };
     const r = calculate(input);
     const settings = MargemFees.mergeSettings(state.settings);
+    els.shipHint.textContent = shipHint(isMl, input, r);
+    els.shipping.placeholder = r.shippingEstimated ? `≈ ${formatBRL(r.shipping)}` : 'R$ 0,00';
 
     els.rows.replaceChildren(
       row(`Comissão (${r.commissionRate.toLocaleString('pt-BR')}%)`, `− ${formatBRL(r.commission)}`),
-      row('Tarifa fixa', `− ${formatBRL(r.fixedFee)}`),
-      row('Frete', `− ${formatBRL(r.shipping)}`),
+      row(r.weightUsed && r.price < 79 ? 'Tarifa por peso' : 'Tarifa fixa', `− ${formatBRL(r.fixedFee)}`),
+      row(r.shippingEstimated ? 'Frete (estimado pelo peso)' : 'Frete', `− ${formatBRL(r.shipping)}`),
       ...(settings.taxPercent ? [row(`Imposto (${settings.taxPercent}%)`, `− ${formatBRL(r.tax)}`)] : []),
       ...(settings.adsPercent ? [row(`Anúncios (${settings.adsPercent}%)`, `− ${formatBRL(r.ads)}`)] : []),
       row('Custo do produto', `− ${formatBRL(r.cost)}`),
